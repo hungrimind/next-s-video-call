@@ -13,6 +13,7 @@ import AgoraRTC, {
   useRemoteAudioTracks,
   useRemoteUsers,
 } from "agora-rtc-react";
+import { useEffect, useState } from "react";
 
 async function Call(props: {
   appId: string;
@@ -45,14 +46,6 @@ async function Call(props: {
         token={await fetchRTCToken(props.channelName)}
         fetchRTCToken={fetchRTCToken}
       />
-      <div className="fixed z-10 bottom-0 left-0 right-0 flex justify-center pb-4">
-        <a
-          className="px-5 py-3 text-base font-medium text-center text-white bg-red-400 rounded-lg hover:bg-red-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
-          href="/"
-        >
-          End Call
-        </a>
-      </div>
     </AgoraRTCProvider>
   );
 }
@@ -70,6 +63,7 @@ function Videos(props: {
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
   const client = useRTCClient();
+  const [isMuted, setIsMuted] = useState(false);
 
   usePublish([localMicrophoneTrack, localCameraTrack]);
   useJoin({
@@ -89,6 +83,13 @@ function Videos(props: {
       });
   });
 
+  useEffect(() => {
+    return () => {
+      localCameraTrack?.close();
+      localMicrophoneTrack?.close();
+    };
+  }, []);
+
   audioTracks.map((track) => track.play());
   const deviceLoading = isLoadingMic || isLoadingCam;
   if (deviceLoading)
@@ -100,14 +101,14 @@ function Videos(props: {
   return (
     <div className="flex flex-col justify-between w-full h-screen p-1">
       <div
-        className={`grid  gap-1 flex-1`}
+        className={`grid gap-1 flex-1`}
         style={{
           gridTemplateColumns:
             remoteUsers.length > 9
               ? unit.repeat(4)
               : remoteUsers.length > 4
               ? unit.repeat(3)
-              : remoteUsers.length > 1
+              : remoteUsers.length >= 1
               ? unit.repeat(2)
               : unit,
         }}
@@ -120,6 +121,25 @@ function Videos(props: {
         {remoteUsers.map((user) => (
           <RemoteUser user={user} />
         ))}
+      </div>
+      <div className="fixed z-10 bottom-0 left-0 right-0 flex justify-center pb-4">
+        <div className="flex space-x-4">
+          <a
+            className="px-5 py-3 text-base font-medium text-center text-white bg-red-400 rounded-lg hover:bg-red-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
+            href="/"
+          >
+            End Call
+          </a>
+          <button
+            className="px-5 py-3 text-base font-medium text-center text-white bg-gray-400 rounded-lg hover:bg-gray-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
+            onClick={() => {
+              setIsMuted(!isMuted);
+              localMicrophoneTrack?.setEnabled(isMuted);
+            }}
+          >
+            {isMuted ? "Unmute" : "Mute"}
+          </button>
+        </div>
       </div>
     </div>
   );
