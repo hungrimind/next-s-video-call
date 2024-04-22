@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchRTCToken } from "@/app/utils/token";
 import AgoraRTC, {
   AgoraRTCProvider,
   LocalVideoTrack,
@@ -14,49 +15,25 @@ import AgoraRTC, {
   useRemoteUsers,
 } from "agora-rtc-react";
 import { useEffect, useState } from "react";
+import Buttons from "./Buttons";
 
-async function Call(props: {
-  appId: string;
-  channelName: string;
-  tokenUrl: string;
-}) {
+async function Call(props: { channelName: string }) {
   const client = useRTCClient(
     AgoraRTC.createClient({ codec: "vp8", mode: "rtc" })
   );
 
-  async function fetchRTCToken(channelName: string) {
-    try {
-      const response = await fetch(
-        `${props.tokenUrl}/rtc/${channelName}/publisher/uid/${0}/?expiry=45`
-      );
-      const data = (await response.json()) as { rtcToken: string };
-      console.log("RTC token fetched from server: ", data.rtcToken);
-      return data.rtcToken;
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
-
   return (
     <AgoraRTCProvider client={client}>
-      <Videos
+      <VideoFeed
         channelName={props.channelName}
-        AppID={props.appId}
-        token={await fetchRTCToken(props.channelName)}
-        fetchRTCToken={fetchRTCToken}
+        initialToken={await fetchRTCToken(props.channelName)}
       />
     </AgoraRTCProvider>
   );
 }
 
-function Videos(props: {
-  channelName: string;
-  AppID: string;
-  token: string;
-  fetchRTCToken: (channelName: string) => Promise<string>;
-}) {
-  const { AppID, channelName, token, fetchRTCToken } = props;
+function VideoFeed(props: { channelName: string; initialToken: string }) {
+  const { channelName, initialToken } = props;
   const { isLoading: isLoadingMic, localMicrophoneTrack } =
     useLocalMicrophoneTrack();
   const { isLoading: isLoadingCam, localCameraTrack } = useLocalCameraTrack();
@@ -67,9 +44,9 @@ function Videos(props: {
 
   usePublish([localMicrophoneTrack, localCameraTrack]);
   useJoin({
-    appid: AppID,
+    appid: process.env.NEXT_PUBLIC_AGORA_APP_ID!,
     channel: channelName,
-    token: token,
+    token: initialToken,
   });
 
   useClientEvent(client, "token-privilege-will-expire", () => {
@@ -122,25 +99,13 @@ function Videos(props: {
           <RemoteUser user={user} />
         ))}
       </div>
-      <div className="fixed z-10 bottom-0 left-0 right-0 flex justify-center pb-4">
-        <div className="flex space-x-4">
-          <a
-            className="px-5 py-3 text-base font-medium text-center text-white bg-red-400 rounded-lg hover:bg-red-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
-            href="/"
-          >
-            End Call
-          </a>
-          <button
-            className="px-5 py-3 text-base font-medium text-center text-white bg-gray-400 rounded-lg hover:bg-gray-500 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-900 w-40"
-            onClick={() => {
-              setIsMuted(!isMuted);
-              localMicrophoneTrack?.setEnabled(isMuted);
-            }}
-          >
-            {isMuted ? "Unmute" : "Mute"}
-          </button>
-        </div>
-      </div>
+      <Buttons
+        isMuted={isMuted}
+        onClick={() => {
+          setIsMuted(!isMuted);
+          localMicrophoneTrack?.setEnabled(isMuted);
+        }}
+      />
     </div>
   );
 }
