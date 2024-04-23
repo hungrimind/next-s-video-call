@@ -72,22 +72,19 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
     return (
       <div className="flex flex-col items-center pt-40">Loading devices...</div>
     );
-  const unit = "minmax(0, 1fr) ";
 
   return (
     <div className="flex flex-col justify-between w-full h-screen">
       <div
-        className={`grid gap-1 flex-1`}
-        style={{
-          gridTemplateColumns:
-            remoteUsers.length > 9
-              ? unit.repeat(4)
-              : remoteUsers.length > 4
-              ? unit.repeat(3)
-              : remoteUsers.length >= 1
-              ? unit.repeat(2)
-              : unit,
-        }}
+        className={`grid gap-1 flex-1 ${
+          remoteUsers.length > 9
+            ? `grid-cols-4`
+            : remoteUsers.length > 4
+            ? `grid-cols-3`
+            : remoteUsers.length >= 1
+            ? `grid-cols-2`
+            : `grid-cols-1`
+        }`}
       >
         <LocalVideoTrack
           track={localCameraTrack}
