@@ -14,7 +14,7 @@ import AgoraRTC, {
   useRemoteAudioTracks,
   useRemoteUsers,
 } from "agora-rtc-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Buttons from "./Buttons";
 
 async function Call(props: { channelName: string }) {
@@ -40,7 +40,6 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
   const remoteUsers = useRemoteUsers();
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
   const client = useRTCClient();
-  const [isMuted, setIsMuted] = useState(false);
 
   usePublish([localMicrophoneTrack, localCameraTrack]);
   useJoin({
@@ -99,13 +98,7 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
           <RemoteUser user={user} />
         ))}
       </div>
-      <Buttons
-        isMuted={isMuted}
-        onClick={() => {
-          setIsMuted(!isMuted);
-          localMicrophoneTrack?.setEnabled(isMuted);
-        }}
-      />
+      <Buttons track={localMicrophoneTrack} />
     </div>
   );
 }
