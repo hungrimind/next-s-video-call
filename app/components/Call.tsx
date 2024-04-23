@@ -76,7 +76,7 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
   const unit = "minmax(0, 1fr) ";
 
   return (
-    <div className="flex flex-col justify-between w-full h-screen p-1">
+    <div className="flex flex-col justify-between w-full h-screen">
       <div
         className={`grid gap-1 flex-1`}
         style={{
