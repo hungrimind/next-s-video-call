@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchRTCToken } from "@/app/utils/token";
+import { fetchToken } from "@/app/utils/token";
 import AgoraRTC, {
   AgoraRTCProvider,
   LocalVideoTrack,
@@ -11,7 +11,6 @@ import AgoraRTC, {
   useLocalMicrophoneTrack,
   usePublish,
   useRTCClient,
-  useRemoteAudioTracks,
   useRemoteUsers,
 } from "agora-rtc-react";
 import { useEffect } from "react";
@@ -26,7 +25,7 @@ async function Call(props: { channelName: string }) {
     <AgoraRTCProvider client={client}>
       <VideoFeed
         channelName={props.channelName}
-        initialToken={await fetchRTCToken(props.channelName)}
+        initialToken={await fetchToken(props.channelName)}
       />
     </AgoraRTCProvider>
   );
@@ -38,7 +37,7 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
     useLocalMicrophoneTrack();
   const { isLoading: isLoadingCam, localCameraTrack } = useLocalCameraTrack();
   const remoteUsers = useRemoteUsers();
-  const { audioTracks } = useRemoteAudioTracks(remoteUsers);
+
   const client = useRTCClient();
 
   usePublish([localMicrophoneTrack, localCameraTrack]);
@@ -49,7 +48,7 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
   });
 
   useClientEvent(client, "token-privilege-will-expire", () => {
-    fetchRTCToken(props.channelName)
+    fetchToken(props.channelName)
       .then((token) => {
         console.log("RTC token fetched from server: ", token);
         if (token) return client.renewToken(token);
@@ -66,7 +65,6 @@ function VideoFeed(props: { channelName: string; initialToken: string }) {
     };
   }, []);
 
-  audioTracks.map((track) => track.play());
   const deviceLoading = isLoadingMic || isLoadingCam;
   if (deviceLoading)
     return (

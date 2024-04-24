@@ -1,4 +1,4 @@
-export async function fetchRTCToken(channelName: string) {
+export async function fetchToken(channelName: string) {
     try {
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_AGORA_TOKEN_URL
