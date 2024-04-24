@@ -6,14 +6,12 @@ export async function fetchToken(channelName: string) {
         );
         const data = (await response.json()) as { rtcToken: string };
         if (!data.rtcToken) {
-            alert("RTC token not found");
             throw "RTC token not found";
         }
         console.log("RTC token fetched from server: ", data.rtcToken);
         return data.rtcToken;
     } catch (error: any) {
         console.error(error);
-        alert(`Error fetching RTC token: ${error.message}`);
         throw error;
     }
 }
